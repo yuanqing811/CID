@@ -16,6 +16,13 @@ cache_dir = os.path.join(data_dir, cache_name)
 
 n_manip = 8
 
+set_keys = {
+    'train_unalt': ['x', 'x_coord', 'y', 'x_index'],
+    'train_manip': ['x', 'x_coord', 'y', 'x_index', 'manip'],
+    'test_unalt': ['x', 'x_coord', 'x_index'],
+    'test_manip': ['x', 'x_coord', 'x_index']
+}
+
 camera_names = ['HTC-1-M7',
                 'iPhone-6',
                 'iPhone-4s',
