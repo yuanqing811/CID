@@ -59,8 +59,9 @@ class DataGenerator(object):
                         n_batch = batch_indices.shape[0]
                         for i in range(len(keys)):
                             node = nodes[i]
+                            buffer = buffers[i]
                             for j in range(n_batch):
-                                buffers[j] = node[batch_indices[j]]
+                                buffer[j] = node[batch_indices[j]]
 
                         yield [encode_predictions(buffers[i][:n_batch], self.n_classes)
                                if keys[i] == 'y' else buffers[i][:n_batch]
