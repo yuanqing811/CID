@@ -1,16 +1,19 @@
 from data.datasets import Dataset
 from data.jpg_utils import get_img_data
 from PIL import Image
+from data.data_generators import DataGenerator
+from data.dataset_utils import cache_dir
+import os
 
 
-def get_rgb_data(filename):
-    with Image.open(filename) as img_file:
+def get_rgb_data(img_file_name):
+    with Image.open(img_file_name) as img_file:
         img_data = get_img_data(img_file,  'RGB')
     return img_data
 
 
-def create_resnet_dataset():
-    dataset = Dataset(h5_name='resnet')
+def create_resnet_dataset(h5_file='resnet'):
+    dataset = Dataset(h5_name=h5_file)
     dataset.save_dataset(dataset_name='rgb_224',
                          data_shape=(224, 224, 3),
                          data_func=get_rgb_data,
@@ -22,21 +25,19 @@ def create_resnet_dataset():
                  })
 
 
-def compute_resnet_feature():
+def compute_resnet_feature(h5_file='resnet'):
     from data.transfer_utils import get_resnet50_features
-
-    dataset = Dataset(h5_name='resnet')
+    dataset = Dataset(h5_name=h5_file)
     dataset.save_feature(dataset_name='rgb_224',
                          feature_name='x_res',
                          data_shape=(2048, ),
                          data_func=get_resnet50_features)
 
 
-def load_shuffled_dataset():
-    dataset = Dataset(h5_name='resnet')
-    data_gen = dataset.load_dataset('rgb_224')
-    for x, y in data_gen.generate(set_name='train_manip',
-                                  partition_name='train',
+def load_shuffled_dataset(h5_file='resnet'):
+    data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, h5_file),
+                             subset_name='train_unalt', validation_split=0.9)
+    for x, y in data_gen.generate(partition_name='train',
                                   keys=['x', 'y'],
                                   batch_size=10):
         print(x.shape)
@@ -46,8 +47,8 @@ def load_shuffled_dataset():
 
 
 if __name__ == '__main__':
-    # create_resnet_dataset()
-    # compute_resnet_feature()
-    # shuffle_resnet_dataset()
-    load_shuffled_dataset()
+    file_name = 'resnet_new'
+    create_resnet_dataset(file_name)
+    compute_resnet_feature(file_name)
+#   load_shuffled_dataset(file_name)
 

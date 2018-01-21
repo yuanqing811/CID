@@ -1,10 +1,8 @@
-import numpy as np
 import os
 import re
-import sys
 import time
 from data.dataset_utils import abbr_camera_name_lookup, camera_name_lookup, camera_names, abbr_camera_names, data_dir
-from data.dataset_utils import seconds_to_hhmmss
+from data.dataset_utils import print_time_estimate
 
 
 class ImageDataset(object):
@@ -25,7 +23,7 @@ class ImageDataset(object):
         self.directory_sort_by = directory_sort_by
         self.filename_sort_by = filename_sort_by
 
-        self.keys = ['x', 'x_coord', 'x_index']
+        self.keys = ['x', 'patch_coord', 'image_index']
 
         self.load()
 
@@ -33,15 +31,15 @@ class ImageDataset(object):
         if not os.path.isdir(self.data_dir):
             raise Exception('directory for %s doesn\'t exist' % type(self))
 
-        for root, directories, filenames in os.walk(self.data_dir):
-            filenames = list(filter(lambda x: not x.startswith('.'), filenames))
+        for root, directories, file_names in os.walk(self.data_dir):
+            file_names = list(filter(lambda x: not x.startswith('.'), file_names))
             if self.filename_filter_by:
-                filenames = list(filter(self.filename_filter_by, filenames))
+                file_names = list(filter(self.filename_filter_by, file_names))
             if self.filename_sort_by:
-                filenames.sort(key=self.filename_sort_by)
+                file_names.sort(key=self.filename_sort_by)
             else:
-                filenames.sort()
-            self.file_names.extend(filenames)
+                file_names.sort()
+            self.file_names.extend(file_names)
 
             directories = list(filter(lambda x: os.path.isdir(os.path.join(self.data_dir, x)), directories))
             if self.directory_filter_by:
@@ -53,17 +51,17 @@ class ImageDataset(object):
             self.directories.extend(directories)
 
             for directory in self.directories:
-                filenames = os.listdir(os.path.join(self.data_dir, directory))
-                filenames = list(filter(lambda x: not x.startswith('.'), filenames))
+                file_names = os.listdir(os.path.join(self.data_dir, directory))
+                file_names = list(filter(lambda x: not x.startswith('.'), file_names))
                 if self.filename_filter_by:
-                    filenames = list(filter(self.filename_filter_by, filenames))
+                    file_names = list(filter(self.filename_filter_by, file_names))
                 if self.filename_sort_by:
-                    filenames.sort(key=self.filename_sort_by)
+                    file_names.sort(key=self.filename_sort_by)
                 else:
-                    filenames.sort()
+                    file_names.sort()
 
-                self.directory_file_names[directory] = filenames
-                self.file_names.extend([os.path.join(directory, filename) for filename in filenames])
+                self.directory_file_names[directory] = file_names
+                self.file_names.extend([os.path.join(directory, filename) for filename in file_names])
 
             break
 
@@ -79,16 +77,17 @@ class ImageDataset(object):
         if max_n_images is None:
             max_n_images = self.n_files
 
+        old_time = time.time()
         for i in range(max_n_images):
             filename = self.file_names[i]
 
             x = data_func(os.path.join(self.data_dir, filename))
-            x, x_coord = patch_generator.extract_patches(x, include_indices=True)
-            yield x, x_coord, i
+            x, patch_coord = patch_generator.extract_patches(x, include_indices=True)
+            yield x, patch_coord, i
 
             if verbose and (i + 1) % 10 == 0:  # for display purpose only
-                print('\rFetched {}/{} files'.format(i+1, max_n_images), end='', flush=True)
-                sys.stdout.flush()
+                print_time_estimate(old_time, i, max_n_images)
+
         print('...done')
 
     def map_index_to_filename(self, idx, abs_path=False):
@@ -100,6 +99,7 @@ class ImageDataset(object):
 
 class TrainingSet(ImageDataset):
     def __init__(self, manip):
+
         self.manip = manip
 
         super(TrainingSet, self).__init__('train_manip' if manip else 'train',
@@ -107,7 +107,7 @@ class TrainingSet(ImageDataset):
                                           filename_sort_by=self.get_file_indices)
 
         self.n_classes = len(camera_names)
-        self.keys = ['x', 'x_coord', 'y', 'x_index']
+        self.keys = ['x', 'patch_coord', 'y', 'image_index']
         if manip:
             self.keys.append('manip')
 
@@ -152,6 +152,34 @@ class TrainingSet(ImageDataset):
             return os.path.join(self.data_dir, camera_name, filename)
         else:
             return filename
+
+    def generate(self, patch_generator, data_func, max_n_images=None, verbose=True):
+
+        filenames = self.file_names
+
+        n_files = len(filenames)
+
+        if max_n_images is None or max_n_images > n_files:
+            max_n_images = n_files
+
+        old_time = time.time()
+        for i in range(max_n_images):
+            filename = filenames[i]
+
+            x = data_func(os.path.join(self.data_dir, filename))
+            x, patch_coord = patch_generator.extract_patches(x, include_indices=True)
+
+            if self.manip:
+                camera_idx, file_idx, manip_idx = self.get_file_indices(filename)
+                yield x, patch_coord, camera_idx, file_idx, manip_idx
+            else:
+                camera_idx, file_idx = self.get_file_indices(filename)
+                yield x, patch_coord, camera_idx, file_idx
+
+            if verbose and (i + 1) % 10 == 0:  # for display purpose only
+                print_time_estimate(old_time, i, max_n_images)
+
+        print('... done')
 
 
 class TestSet(ImageDataset):

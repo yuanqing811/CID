@@ -2,11 +2,9 @@ import numpy as np
 import inspect
 import os
 import sys
-from itertools import accumulate
-import tables
-import time
 from data.jpg_utils import get_img_data, crop, get_manipulated_image
 from PIL import Image
+import time
 
 curr_filename = inspect.getfile(inspect.currentframe())
 data_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -87,49 +85,6 @@ camera_dict = {
 }
 
 
-laplace = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]])
-
-
-def partition_dataset(n_files, p_train=.8):
-    # Default: Divide the data into 80% train, 20% validation
-    partitions = {}
-    n_train = int(n_files * p_train)
-
-    partitions['train'] = (0, n_train)
-    partitions['valid'] = (n_train, n_files)
-    return partitions
-
-
-def get_exploration_order(n_files):
-    """
-    Generates order of exploration
-    """
-    indices = np.random.permutation(n_files)
-    return indices
-
-
-def regular_shuffle(data, indices):
-    n = len(data)
-
-    if n == 1:
-        n_samples = data.shape[0]
-    else:
-        n_samples = data[0].shape[0]
-
-    old_time = time.time()
-    for i in range(n_samples):
-        if (i + 1) % 10 == 0:
-            current_time = time.time()
-            elapsed_time = current_time - old_time
-            print("\r shuffling %d/%d in %s" % (i+1, n_samples, seconds_to_hhmmss(elapsed_time)),
-                  end='', flush=True)
-            sys.stdout.flush()
-
-        yield [d[indices[i]][None] for d in data]
-
-    print(' ... done')
-
-
 def batch_fetch(x, batch_size, verbose=False):
     n_samples = x.shape[0]
     n_batches = int((n_samples + batch_size - 1)/batch_size)
@@ -140,23 +95,8 @@ def batch_fetch(x, batch_size, verbose=False):
             print('\rfetched data: {}/{}'.format(i, n_batches), end='', flush=True)
             sys.stdout.flush()
 
-        batch_indices = slice(batch_size * i, batch_size * (i + 1))
+        batch_indices = slice(batch_size * i, min(batch_size * (i + 1), n_samples))
         yield x[batch_indices]
-    print(' ... done')
-
-
-def batch_fetch_list(data_list, batch_size, verbose=False):
-    n_samples = data_list[0].shape[0]
-    n_batches = int((n_samples + batch_size - 1)/batch_size)
-
-    for i in range(n_batches):
-
-        if verbose and i % 10 == 0 and i > 1:  # for display purpose only
-            print('\rfetched data: {}/{}'.format(i, n_batches), end='', flush=True)
-            sys.stdout.flush()
-
-        batch_indices = slice(batch_size * i, batch_size * (i + 1))
-        yield [x[batch_indices] for x in data_list]
     print(' ... done')
 
 
@@ -280,3 +220,19 @@ def seconds_to_hhmmss(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return "%d:%02d:%02d" % (h, m, s)
+
+
+def print_time_estimate(old_time, current_image, total_images):
+    new_time = time.time()
+    elapsed_time = new_time - old_time
+    time_per_image = elapsed_time / (current_image + 1)
+    remain_time = time_per_image * (total_images - current_image)
+
+    print('\rprocessed {}/{} files, '
+          'elapsed time: {}, '
+          'estimated remaining time: {}, '.format(current_image + 1, total_images,
+                                                  seconds_to_hhmmss(elapsed_time),
+                                                  seconds_to_hhmmss(remain_time), ),
+          end='', flush=True)
+    sys.stdout.flush()
+
