@@ -17,6 +17,14 @@ set_keys = {
     'test_manip': ['x', 'x_coord', 'x_index']
 }
 
+numpy_dtype = {
+    'x': np.uint8,
+    'y': np.uint8,
+    'image_index': np.uint16,
+    'patch_coord': np.uint16,
+    'manip': np.uint8,
+}
+
 camera_names = ['HTC-1-M7',
                 'iPhone-6',
                 'iPhone-4s',
