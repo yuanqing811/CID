@@ -84,7 +84,7 @@ def train_model(set_name):
 
     model.fit_generator(generator=train_data_generator,
                         steps_per_epoch=n_train_batches,
-                        epochs=1, verbose=2,
+                        epochs=25, verbose=2,
                         callbacks=callbacks_list,
                         validation_data=valid_data_generator,
                         validation_steps=n_valid_batches,
