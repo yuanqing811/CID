@@ -27,9 +27,7 @@ if not os.path.isdir(submission_dir):
 
 num_cameras = len(camera_names)
 
-data_set = Dataset('resnet_new')
-data_key_name = 'x_res'
-label_key_name = 'y'
+data_set = Dataset('resnet')
 batch_size = 25
 
 
@@ -50,8 +48,6 @@ def get_model():
     tmp = Dropout(rate=drop_prob)(tmp)
     tmp = Dense(32, activation=activations.relu)(tmp)
     tmp = Dropout(rate=drop_prob)(tmp)
-    # tmp = Dense(40, activation=activations.relu)(tmp)
-    # tmp = Dropout(rate=0.2)(tmp)
     dense_1 = Dense(num_cameras, activation=activations.softmax)(tmp)
     model = models.Model(inputs=inp, outputs=dense_1)
     opt = optimizers.Adam()
@@ -71,7 +67,7 @@ def train_model(set_name):
 
     callbacks_list = [checkpoint, early, tb_callback]
 
-    data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, 'resnet_new.h5'),
+    data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, 'resnet.h5'),
                              subset_name=set_name, validation_split=0.9)
     n_train_batches = int((data_gen.n_train + batch_size - 1)/batch_size)
     n_valid_batches = int((data_gen.n_valid + batch_size - 1)/batch_size)
@@ -85,9 +81,10 @@ def train_model(set_name):
     valid_data_generator = data_gen.generate(partition_name='valid',
                                              keys=['x_res', 'y'],
                                              batch_size=batch_size)
+
     model.fit_generator(generator=train_data_generator,
                         steps_per_epoch=n_train_batches,
-                        epochs=25, verbose=2,
+                        epochs=1, verbose=2,
                         callbacks=callbacks_list,
                         validation_data=valid_data_generator,
                         validation_steps=n_valid_batches,
@@ -103,7 +100,7 @@ def test_model(train_set_name, test_set_name, predictions_local):
 
     model.load_weights(filepath=model_data_path)
 
-    data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, 'resnet_new.h5'),
+    data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, 'resnet.h5'),
                              subset_name=test_set_name)
 
     test_data_generator = data_gen.generate(keys=['x_res', 'image_index'], batch_size=1, for_keras=False)

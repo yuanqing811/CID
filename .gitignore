@@ -55,7 +55,7 @@ __pycache__/
 submissions/
 input/
 output/
-DeepCNN/logs/
 data/train/
+data/train_manip/
 data/test/
 data/data_cache/

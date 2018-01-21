@@ -1,9 +1,7 @@
-import numpy as np
 import os
-import sys
 import errno
 
-from data.dataset_utils import batch_fetch, PatchGenerator, seconds_to_hhmmss
+from data.dataset_utils import batch_fetch, PatchGenerator
 from data.dataset_utils import cache_dir
 from data.ImageDataset import TrainingSet, TestSet
 import tables
