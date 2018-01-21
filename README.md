@@ -18,3 +18,4 @@ How to use the code:
 
 The overall solution simply computes resnet features for patches extracted from close to center of the image. We train two models, one for unaltered image and one for manipulated images and use the corresponding model to make predictions.
 
+Hat tip to IgorMuniz (https://www.kaggle.com/igormunizims/pre-processing-for-data-augmentation) for the code for generating manipulated images. 
