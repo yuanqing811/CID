@@ -32,6 +32,7 @@ data_key_name = 'x_res'
 label_key_name = 'y'
 batch_size = 25
 
+
 def get_model():
     input_shape = (2048,)
     drop_prob = 0.2
@@ -72,19 +73,18 @@ def train_model(set_name):
 
     data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, 'resnet_new.h5'),
                              subset_name=set_name, validation_split=0.9)
+    n_train_batches = int((data_gen.n_train + batch_size - 1)/batch_size)
+    n_valid_batches = int((data_gen.n_valid + batch_size - 1)/batch_size)
 
     model = get_model()
 
     train_data_generator = data_gen.generate(partition_name='train',
                                              keys=['x_res', 'y'],
                                              batch_size=batch_size)
-    n_train_samples = len(data_gen.train_samples)
-    n_train_batches = int((n_train_samples + batch_size - 1)/batch_size)
+
     valid_data_generator = data_gen.generate(partition_name='valid',
                                              keys=['x_res', 'y'],
                                              batch_size=batch_size)
-    n_valid_samples = len(data_gen.valid_samples)
-    n_valid_batches = int((n_valid_samples + batch_size - 1)/batch_size)
     model.fit_generator(generator=train_data_generator,
                         steps_per_epoch=n_train_batches,
                         epochs=25, verbose=2,
