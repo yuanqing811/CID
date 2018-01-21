@@ -1,9 +1,8 @@
 import os
 from data.datasets import Dataset
 from keras import optimizers, losses, activations, models
-from keras.layers import Convolution2D, Dense, Input, Dropout, MaxPooling2D, BatchNormalization, GlobalMaxPool2D, LeakyReLU, AveragePooling2D
-from keras import backend as K
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler, EarlyStopping, ReduceLROnPlateau, TensorBoard
+from keras.layers import Dense, Input, Dropout
+from keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from data.dataset_utils import root_dir
 import numpy as np
 import pandas as pd
@@ -13,6 +12,18 @@ from data.data_generators import DataGenerator
 output_dir = os.path.join(root_dir, 'output')
 model_data_dir = os.path.join(output_dir, 'model_data')
 submission_dir = os.path.join(output_dir, 'submissions')
+
+if not os.path.isdir(output_dir):
+    print('Creating output directory')
+    os.system('mkdir %s' % output_dir)
+
+if not os.path.isdir(model_data_dir):
+    print('Creating model data directory')
+    os.system('mkdir %s' % model_data_dir)
+
+if not os.path.isdir(submission_dir):
+    print('Creating submissions directory')
+    os.system('mkdir %s' % submission_dir)
 
 num_cameras = len(camera_names)
 
@@ -120,8 +131,8 @@ if __name__ == '__main__':
 
     predictions = dict()
     for train_set_name, test_set_name in zip(train_set_names, test_set_names):
-#        train_model(train_set_name)
-        test_model(train_set_name='train_unalt',
+        train_model(train_set_name)
+        test_model(train_set_name=train_set_name,
                    test_set_name=test_set_name,
                    predictions_local=predictions)
 
@@ -136,5 +147,5 @@ if __name__ == '__main__':
     df = pd.DataFrame(columns=['fname', 'camera'])
     df['fname'] = test_files
     df['camera'] = final_predictions
-    sub_file = os.path.join(submission_dir, "test_resnet_unalt_only.csv")
+    sub_file = os.path.join(submission_dir, "test_resnet.csv")
     df.to_csv(sub_file, index=False)

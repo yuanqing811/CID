@@ -18,7 +18,7 @@ def create_resnet_dataset(h5_file='resnet'):
                          data_shape=(224, 224, 3),
                          data_func=get_rgb_data,
                          crop_size={
-                     'train_unalt': (1120, 1120),
+                     'train_unalt': (912, 912),
                      'train_manip': (448, 448),
                      'test_unalt': (448, 448),
                      'test_manip': (448, 448)
@@ -34,7 +34,7 @@ def compute_resnet_feature(h5_file='resnet'):
                          data_func=get_resnet50_features)
 
 
-def load_shuffled_dataset(h5_file='resnet'):
+def load_dataset_test(h5_file='resnet'):
     data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, h5_file + '.h5'),
                              subset_name='train_unalt', validation_split=0.9)
     for x, y in data_gen.generate(partition_name='train',
@@ -46,8 +46,8 @@ def load_shuffled_dataset(h5_file='resnet'):
 
 
 if __name__ == '__main__':
-    file_name = 'resnet_new'
-#    create_resnet_dataset(file_name)
-#    compute_resnet_feature(file_name)
-    load_shuffled_dataset(file_name)
+    file_name = 'resnet'
+    create_resnet_dataset(file_name)
+    compute_resnet_feature(file_name)
+#    load_dataset_test(file_name)
 

@@ -1,9 +1,6 @@
 import numpy as np
-from PIL import JpegImagePlugin, ExifTags
 from scipy.fftpack import dct
-from PIL import Image
 import cv2
-from keras.preprocessing import image
 
 
 def dct2(a):
