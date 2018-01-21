@@ -2,7 +2,6 @@ import tables
 from data.dataset_utils import set_keys
 import numpy as np
 
-
 class DataGenerator(object):
     """
     After adding data and lossless-ly compressing using EArray,
@@ -38,6 +37,9 @@ class DataGenerator(object):
         if keys is None:
             keys = set_keys[self.subset_name]
 
+        data_types = {'x':'uint8', 'y':'uint8', 'x_res':'float', 'patch_coord':'int', 'image_index':
+                      'int'}
+
         # open the hdf5 file
         with tables.open_file(self.hdf5_path, mode='r') as hdf5_file:
             set_group = hdf5_file.get_node(hdf5_file.root, '/%s/%s/' % (self.dataset_name, self.subset_name))
@@ -58,10 +60,19 @@ class DataGenerator(object):
                     else:
                         raise ValueError('Unknown partition for training set!')
                     # Generate batches
+                    shuffled_indices = np.asarray(shuffled_indices)
+
                     for i_s in range(0, n_samples, batch_size):
-                        batch_indices = shuffled_indices[slice(i_s, min(i_s + batch_size, n_samples))]
-                        output = [encode_predictions(x[batch_indices], self.n_classes) if key == 'y'
-                                  else x[batch_indices] for key, x in data]
+                        batch_indices = shuffled_indices[i_s:min(i_s + batch_size, n_samples)]
+                        output = list()
+
+                        # creating buffer arrays
+                        for key, x in data:
+                            output_tmp = np.zeros(shape=(batch_indices.shape[0], ) + x.shape[1:], dtype=data_types[key])
+                            for i_b in range(batch_indices.shape[0]):
+                                output_tmp[i_b] = x[batch_indices[i_b]]
+                            output.append(encode_predictions(output_tmp, self.n_classes) if key == 'y' else output_tmp)
+
                         yield output
             else:
                 n_samples = data[0][1].shape[0]
