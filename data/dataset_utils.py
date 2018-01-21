@@ -1,6 +1,6 @@
 import numpy as np
 import inspect
-import os
+import os, errno
 import sys
 from data.jpg_utils import get_img_data, crop, get_manipulated_image
 from PIL import Image

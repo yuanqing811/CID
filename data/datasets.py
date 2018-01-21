@@ -1,6 +1,8 @@
 import numpy as np
 import os
 import sys
+import errno
+
 from data.dataset_utils import batch_fetch, PatchGenerator, seconds_to_hhmmss
 from data.dataset_utils import cache_dir
 from data.ImageDataset import TrainingSet, TestSet
@@ -19,6 +21,13 @@ data_src_dir = ['train_unalt',
 class Dataset(object):
     def __init__(self, h5_name):
         self.hdf5_name = '%s.h5' % h5_name
+
+        try:
+            os.makedirs(cache_dir)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+
         self.hdf5_path = os.path.join(cache_dir, self.hdf5_name)
         self.hdf5_write_mode = 'a'  # default to append mode, can be changed to 'w' mode using overwrite
 
@@ -128,13 +137,8 @@ class Dataset(object):
 
         # todo: allow data_gen to include_indices, verbose option, and check order of data
         for data in data_generator:
-            n_patches = data[0].shape[0]  # hack: assuming all data has field x
             for i in range(len(keys)):
-                key = keys[i]
-                if key in ['y', 'image_index', 'manip']:
-                    nodes[i].append(np.array([data[i], ] * n_patches, dtype=self.data_type[key]))
-                else:   # x, patch_coord
-                    nodes[i].append(data[i])
+                nodes[i].append(data[i])
 
     def save_feature(self, dataset_name, feature_name, data_shape, data_func, batch_size=10, write=False):
         if write is True or False:
