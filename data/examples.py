@@ -49,5 +49,5 @@ if __name__ == '__main__':
     file_name = 'resnet_new'
 #    create_resnet_dataset(file_name)
 #    compute_resnet_feature(file_name)
-   load_shuffled_dataset(file_name)
+    load_shuffled_dataset(file_name)
 
