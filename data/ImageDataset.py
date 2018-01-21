@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import numpy as np
 from data.dataset_utils import abbr_camera_name_lookup, camera_name_lookup, camera_names, abbr_camera_names, data_dir
 from data.dataset_utils import print_time_estimate
 
@@ -12,11 +13,11 @@ class ImageDataset(object):
 
         self.name = name
         self.data_dir = os.path.join(data_dir, name)
-        self.file_names = []
+        self.filenames = []
         self.directories = []
         self.n_files = 0
         self.n_directories = 0
-        self.directory_file_names = {}
+        self.directory_filenames = {}
 
         self.directory_filter_by = directory_filter_by
         self.filename_filter_by = filename_filter_by
@@ -31,15 +32,15 @@ class ImageDataset(object):
         if not os.path.isdir(self.data_dir):
             raise Exception('directory for %s doesn\'t exist' % type(self))
 
-        for root, directories, file_names in os.walk(self.data_dir):
-            file_names = list(filter(lambda x: not x.startswith('.'), file_names))
+        for root, directories, filenames in os.walk(self.data_dir):
+            filenames = list(filter(lambda x: not x.startswith('.'), filenames))
             if self.filename_filter_by:
-                file_names = list(filter(self.filename_filter_by, file_names))
+                filenames = list(filter(self.filename_filter_by, filenames))
             if self.filename_sort_by:
-                file_names.sort(key=self.filename_sort_by)
+                filenames.sort(key=self.filename_sort_by)
             else:
-                file_names.sort()
-            self.file_names.extend(file_names)
+                filenames.sort()
+            self.filenames.extend(filenames)
 
             directories = list(filter(lambda x: os.path.isdir(os.path.join(self.data_dir, x)), directories))
             if self.directory_filter_by:
@@ -51,27 +52,27 @@ class ImageDataset(object):
             self.directories.extend(directories)
 
             for directory in self.directories:
-                file_names = os.listdir(os.path.join(self.data_dir, directory))
-                file_names = list(filter(lambda x: not x.startswith('.'), file_names))
+                filenames = os.listdir(os.path.join(self.data_dir, directory))
+                filenames = list(filter(lambda x: not x.startswith('.'), filenames))
                 if self.filename_filter_by:
-                    file_names = list(filter(self.filename_filter_by, file_names))
+                    filenames = list(filter(self.filename_filter_by, filenames))
                 if self.filename_sort_by:
-                    file_names.sort(key=self.filename_sort_by)
+                    filenames.sort(key=self.filename_sort_by)
                 else:
-                    file_names.sort()
+                    filenames.sort()
 
-                self.directory_file_names[directory] = file_names
-                self.file_names.extend([os.path.join(directory, filename) for filename in file_names])
+                self.directory_filenames[directory] = filenames
+                self.filenames.extend([os.path.join(directory, filename) for filename in filenames])
 
             break
 
         self.n_directories = len(self.directories)
-        self.n_files = len(self.file_names)
+        self.n_files = len(self.filenames)
 
     def load_directory_filenames(self, directory, max_n_images=None):
         if max_n_images is None:
             max_n_images = self.n_files
-        return self.directory_file_names[directory][:max_n_images]
+        return self.directory_filenames[directory][:max_n_images]
 
     def generate(self, patch_generator, data_func, max_n_images=None, verbose=True):
         if max_n_images is None:
@@ -79,7 +80,7 @@ class ImageDataset(object):
 
         old_time = time.time()
         for i in range(max_n_images):
-            filename = self.file_names[i]
+            filename = self.filenames[i]
 
             x = data_func(os.path.join(self.data_dir, filename))
             x, patch_coord = patch_generator.extract_patches(x, include_indices=True)
@@ -92,9 +93,9 @@ class ImageDataset(object):
 
     def map_index_to_filename(self, idx, abs_path=False):
         if abs_path:
-            return os.path.join(self.data_dir, self.file_names[idx])
+            return os.path.join(self.data_dir, self.filenames[idx])
         else:
-            return self.file_names[idx]
+            return self.filenames[idx]
 
 
 class TrainingSet(ImageDataset):
@@ -154,27 +155,28 @@ class TrainingSet(ImageDataset):
             return filename
 
     def generate(self, patch_generator, data_func, max_n_images=None, verbose=True):
-
-        filenames = self.file_names
-
-        n_files = len(filenames)
-
-        if max_n_images is None or max_n_images > n_files:
-            max_n_images = n_files
+        if max_n_images is None or max_n_images > self.n_files:
+            max_n_images = self.n_files
 
         old_time = time.time()
         for i in range(max_n_images):
-            filename = filenames[i]
+            filename = self.filenames[i]
 
             x = data_func(os.path.join(self.data_dir, filename))
             x, patch_coord = patch_generator.extract_patches(x, include_indices=True)
+            n_patches = x.shape[0]
 
             if self.manip:
-                camera_idx, file_idx, manip_idx = self.get_file_indices(filename)
-                yield x, patch_coord, camera_idx, file_idx, manip_idx
+                y, file_idx, manip_idx = self.get_file_indices(filename)
+                y = np.array([y, ] * n_patches, dtype=np.uint8)
+                file_idx = np.array([file_idx, ] * n_patches, dtype=np.uint16)
+                manip_idx = np.array([manip_idx, ] * n_patches, dtype=np.uint8)
+                yield x, patch_coord, y, file_idx, manip_idx
             else:
-                camera_idx, file_idx = self.get_file_indices(filename)
-                yield x, patch_coord, camera_idx, file_idx
+                y, file_idx = self.get_file_indices(filename)
+                y = np.array([y, ] * n_patches, dtype=np.uint8)
+                file_idx = np.array([file_idx, ] * n_patches, dtype=np.uint16)
+                yield x, patch_coord, y, file_idx
 
             if verbose and (i + 1) % 10 == 0:  # for display purpose only
                 print_time_estimate(old_time, i, max_n_images)

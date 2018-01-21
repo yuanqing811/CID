@@ -35,7 +35,7 @@ def compute_resnet_feature(h5_file='resnet'):
 
 
 def load_shuffled_dataset(h5_file='resnet'):
-    data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, h5_file+ '.h5'),
+    data_gen = DataGenerator(hdf5_path=os.path.join(cache_dir, h5_file + '.h5'),
                              subset_name='train_unalt', validation_split=0.9)
     for x, y in data_gen.generate(partition_name='train',
                                   keys=['x', 'y'],
@@ -49,5 +49,5 @@ if __name__ == '__main__':
     file_name = 'resnet_new'
 #    create_resnet_dataset(file_name)
 #    compute_resnet_feature(file_name)
-    load_shuffled_dataset(file_name)
+   load_shuffled_dataset(file_name)
 
