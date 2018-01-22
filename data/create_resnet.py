@@ -18,11 +18,11 @@ def create_resnet_dataset(h5_file='resnet'):
                          data_shape=(224, 224, 3),
                          data_func=get_rgb_data,
                          crop_size={
-                     'train_unalt': (1120, 1120),
-                     'train_manip': (448, 448),
-                     'test_unalt': (448, 448),
-                     'test_manip': (448, 448)
-                 })
+                             'train_unalt': (1120, 1120),
+                             'train_manip': (448, 448),
+                             'test_unalt': (448, 448),
+                             'test_manip': (448, 448)
+                         })
 
 
 def compute_resnet_feature(h5_file='resnet'):

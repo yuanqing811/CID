@@ -172,13 +172,13 @@ class TrainingSet(ImageDataset):
             if self.manip:
                 y, file_idx, manip_idx = self.get_file_indices(filename)
                 y = np.array([y, ] * n_patches, dtype=np.uint8)
-                file_idx = np.array([i, ] * n_patches, dtype=np.uint16)
+                file_idx = np.array([file_idx, ] * n_patches, dtype=np.uint16)
                 manip_idx = np.array([manip_idx, ] * n_patches, dtype=np.uint8)
                 yield x, patch_coord, y, file_idx, manip_idx
             else:
                 y, file_idx = self.get_file_indices(filename)
                 y = np.array([y, ] * n_patches, dtype=np.uint8)
-                file_idx = np.array([i, ] * n_patches, dtype=np.uint16)
+                file_idx = np.array([file_idx, ] * n_patches, dtype=np.uint16)
                 yield x, patch_coord, y, file_idx
 
             if verbose and (i + 1) % 10 == 0:  # for display purpose only
