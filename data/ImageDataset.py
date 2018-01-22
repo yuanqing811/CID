@@ -90,7 +90,7 @@ class ImageDataset(object):
             yield x, patch_coord, file_idx
 
             if verbose and (i + 1) % 10 == 0:  # for display purpose only
-                print_time_estimate(old_time, file_idx, max_n_images)
+                print_time_estimate(old_time, i, max_n_images)
 
         print('...done')
 
