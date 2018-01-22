@@ -11,10 +11,10 @@ cache_name = 'data_cache'
 cache_dir = os.path.join(data_dir, cache_name)
 
 set_keys = {
-    'train_unalt': ['x', 'x_coord', 'y', 'x_index'],
-    'train_manip': ['x', 'x_coord', 'y', 'x_index', 'manip'],
-    'test_unalt': ['x', 'x_coord', 'x_index'],
-    'test_manip': ['x', 'x_coord', 'x_index']
+    'train_unalt': ['x', 'patch_coord', 'y', 'image_index'],
+    'train_manip': ['x', 'patch_coord', 'y', 'image_index', 'manip'],
+    'test_unalt': ['x', 'patch_coord', 'image_index'],
+    'test_manip': ['x', 'patch_coord', 'image_index']
 }
 
 numpy_dtype = {

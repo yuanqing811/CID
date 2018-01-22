@@ -18,7 +18,7 @@ def create_resnet_dataset(h5_file='resnet'):
                          data_shape=(224, 224, 3),
                          data_func=get_rgb_data,
                          crop_size={
-                     'train_unalt': (912, 912),
+                     'train_unalt': (1120, 1120),
                      'train_manip': (448, 448),
                      'test_unalt': (448, 448),
                      'test_manip': (448, 448)
@@ -49,5 +49,5 @@ if __name__ == '__main__':
     file_name = 'resnet'
     create_resnet_dataset(file_name)
     compute_resnet_feature(file_name)
-#    load_dataset_test(file_name)
+    load_dataset_test(file_name)
 
