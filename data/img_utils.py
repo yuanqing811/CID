@@ -46,10 +46,10 @@ def crop(img, crop_size=512):
 
     width, height = img.size  # Get dimensions
 
-    left = (width - crop_width) / 2
-    top = (height - crop_height) / 2
-    right = (width + crop_width) / 2
-    bottom = (height + crop_height) / 2
+    left = (width - crop_width) // 2
+    top = (height - crop_height) // 2
+    right = (width + crop_width) // 2
+    bottom = (height + crop_height) // 2
 
     return img.crop((left, top, right, bottom))
 
