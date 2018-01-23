@@ -41,8 +41,6 @@ class DataGenerator(object):
             set_group = hdf5_file.get_node(hdf5_file.root,
                                            '/%s/%s/' % (self.dataset_name, self.subset_name))
             nodes = [hdf5_file.get_node(set_group, key) for key in keys]
-            buffers = [np.empty(shape=(batch_size, ) + nodes[i].shape[1:],
-                                dtype=numpy_dtype[keys[i]]) for i in range(len(keys))]
 
             if 'train' in self.subset_name and for_keras is True:
                 indices = self.partitions[partition_name]
@@ -55,6 +53,8 @@ class DataGenerator(object):
 
                     # Generate batches
                     for i_s in range(0, n_samples, batch_size):
+                        buffers = [np.empty(shape=(batch_size,) + nodes[i].shape[1:],
+                                            dtype=numpy_dtype[keys[i]]) for i in range(len(keys))]
                         batch_indices = indices[i_s:i_s + batch_size]
                         n_batch = batch_indices.shape[0]
                         for i in range(len(keys)):
