@@ -18,7 +18,7 @@ set_keys = {
 }
 
 numpy_dtype = {
-    'x_res': np.uint8,
+    'x_res': np.float,
     'x': np.uint8,
     'y': np.uint8,
     'image_index': np.uint16,
